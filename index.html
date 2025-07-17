@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>智能年龄计算器</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Font Awesome -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css"
+      rel="stylesheet"
+    />
+    <!-- 引入粒子背景库 -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+
+    <!-- 配置Tailwind自定义样式 -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#4F46E5', // 主色调：靛蓝色
+              secondary: '#EC4899', // 辅助色：粉红色
+              accent: '#10B981', // 强调色：绿色
+              dark: '#1E293B',
+              light: '#F8FAFC'
+            },
+            fontFamily: {
+              inter: ['Inter', 'system-ui', 'sans-serif']
+            }
+          }
+        }
+      }
+    </script>
+
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .content-auto {
+          content-visibility: auto;
+        }
+        .glass {
+          @apply bg-white/10 backdrop-blur-lg border border-white/20;
+        }
+        .text-shadow {
+          @apply text-shadow-md;
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        .animate-pulse-slow {
+          animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+      }
+
+      @keyframes float {
+        0% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-15px);
+        }
+        100% {
+          transform: translateY(0px);
+        }
+      }
+    </style>
+  </head>
+
+  <body
+    class="font-inter bg-gradient-to-br from-dark to-slate-900 text-light min-h-screen overflow-x-hidden"
+  >
+    <!-- 粒子背景容器 -->
+    <div id="particles-js" class="fixed inset-0 z-0 opacity-60"></div>
+
+    <!-- 主容器 -->
+    <div class="relative z-10 container mx-auto px-4 py-12 max-w-5xl">
+      <!-- 页面标题 -->
+      <header class="text-center mb-12 animate-float">
+        <h1
+          class="text-[clamp(2rem,5vw,3.5rem)] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent mb-4"
+        >
+          智能年龄计算器
+        </h1>
+        <p class="text-slate-300 text-[clamp(1rem,2vw,1.2rem)] max-w-2xl mx-auto">
+          输入您的出生年月日，精确计算您的年龄（岁、月、天）
+        </p>
+      </header>
+
+      <!-- 计算器主体 -->
+      <main class="grid md:grid-cols-5 gap-8">
+        <!-- 输入区域 -->
+        <div
+          class="md:col-span-2 glass rounded-2xl p-6 shadow-xl transform transition-all duration-500 hover:shadow-primary/20 hover:-translate-y-1"
+        >
+          <h2 class="text-xl font-semibold mb-6 flex items-center">
+            <i class="fa fa-calendar-plus-o text-primary mr-2"></i>
+            输入出生信息
+          </h2>
+
+          <form id="ageForm" class="space-y-6">
+            <div class="space-y-2">
+              <label for="birthdate" class="block text-slate-300 font-medium">出生日期</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                  <i class="fa fa-calendar"></i>
+                </span>
+                <input
+                  type="date"
+                  id="birthdate"
+                  required
+                  class="w-full pl-10 pr-4 py-3 rounded-lg bg-dark/50 border border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/30 transition-all outline-none text-light"
+                />
+              </div>
+            </div>
+
+            <div class="pt-4">
+              <button
+                type="submit"
+                class="w-full bg-gradient-to-r from-primary to-secondary text-white font-medium py-3 px-6 rounded-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98] flex items-center justify-center"
+              >
+                <i class="fa fa-calculator mr-2"></i>
+                计算年龄
+              </button>
+            </div>
+          </form>
+
+          <!-- 装饰元素 -->
+          <div
+            class="absolute -bottom-4 -right-4 w-20 h-20 bg-accent/20 rounded-full blur-xl opacity-70 animate-pulse-slow"
+          ></div>
+          <div
+            class="absolute -top-6 -left-6 w-16 h-16 bg-primary/20 rounded-full blur-xl opacity-70 animate-pulse-slow"
+            style="animation-delay: 1s"
+          ></div>
+        </div>
+
+        <!-- 结果展示区域 -->
+        <div class="md:col-span-3 glass rounded-2xl p-6 shadow-xl relative overflow-hidden">
+          <h2 class="text-xl font-semibold mb-6 flex items-center">
+            <i class="fa fa-bar-chart text-secondary mr-2"></i>
+            年龄计算结果
+          </h2>
+
+          <!-- 初始提示 -->
+          <div
+            id="initialMessage"
+            class="h-64 flex flex-col items-center justify-center text-slate-400 text-center p-4"
+          >
+            <i class="fa fa-user-circle-o text-6xl mb-4 opacity-30"></i>
+            <p>请输入出生日期并点击计算按钮</p>
+          </div>
+
+          <!-- 结果展示（默认隐藏） -->
+          <div id="result" class="hidden space-y-8">
+            <!-- 年龄概览 -->
+            <div class="text-center">
+              <p class="text-slate-400 mb-2">您的精确年龄是</p>
+              <h3
+                id="ageOverview"
+                class="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary"
+              ></h3>
+            </div>
+
+            <!-- 详细年龄数据 -->
+            <div class="grid grid-cols-3 gap-4">
+              <div
+                class="bg-dark/30 rounded-xl p-4 text-center transform transition-all duration-300 hover:scale-105 hover:bg-dark/50"
+              >
+                <div id="years" class="text-3xl md:text-4xl font-bold text-primary mb-1">0</div>
+                <div class="text-slate-400 text-sm">年</div>
+              </div>
+              <div
+                class="bg-dark/30 rounded-xl p-4 text-center transform transition-all duration-300 hover:scale-105 hover:bg-dark/50"
+              >
+                <div id="months" class="text-3xl md:text-4xl font-bold text-secondary mb-1">0</div>
+                <div class="text-slate-400 text-sm">月</div>
+              </div>
+              <div
+                class="bg-dark/30 rounded-xl p-4 text-center transform transition-all duration-300 hover:scale-105 hover:bg-dark/50"
+              >
+                <div id="days" class="text-3xl md:text-4xl font-bold text-accent mb-1">0</div>
+                <div class="text-slate-400 text-sm">天</div>
+              </div>
+            </div>
+
+            <!-- 额外统计 -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2">
+              <div class="bg-dark/20 rounded-lg p-3 text-sm">
+                <p class="text-slate-400">总天数</p>
+                <p id="totalDays" class="text-accent font-medium"></p>
+              </div>
+              <div class="bg-dark/20 rounded-lg p-3 text-sm">
+                <p class="text-slate-400">总小时</p>
+                <p id="totalHours" class="text-accent font-medium"></p>
+              </div>
+              <div class="bg-dark/20 rounded-lg p-3 text-sm md:col-span-1 col-span-2">
+                <p class="text-slate-400">下一个生日还有</p>
+                <p id="daysToBirthday" class="text-secondary font-medium"></p>
+              </div>
+            </div>
+
+            <!-- 可视化年龄进度 -->
+            <div class="pt-4">
+              <div class="flex justify-between text-sm mb-2">
+                <span class="text-slate-400">今年年龄进度</span>
+                <span id="ageProgressPercent" class="text-primary font-medium">0%</span>
+              </div>
+              <div class="h-3 bg-dark/30 rounded-full overflow-hidden">
+                <div
+                  id="ageProgressBar"
+                  class="h-full bg-gradient-to-r from-primary to-accent w-0 transition-all duration-1000 ease-out"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- 页脚 -->
+      <footer class="mt-16 text-center text-slate-500 text-sm">
+        <p>© 2025 智能年龄计算器 | 精确计算每一刻时光</p>
+      </footer>
+    </div>
+
+    <script>
+      // 初始化粒子背景
+      document.addEventListener('DOMContentLoaded', function () {
+        particlesJS('particles-js', {
+          particles: {
+            number: {
+              value: 80,
+              density: {
+                enable: true,
+                value_area: 800
+              }
+            },
+            color: {
+              value: ['#4F46E5', '#EC4899', '#10B981']
+            },
+            shape: {
+              type: 'circle'
+            },
+            opacity: {
+              value: 0.5,
+              random: true
+            },
+            size: {
+              value: 3,
+              random: true
+            },
+            line_linked: {
+              enable: true,
+              distance: 150,
+              color: '#4F46E5',
+              opacity: 0.1,
+              width: 1
+            },
+            move: {
+              enable: true,
+              speed: 1,
+              direction: 'none',
+              random: true,
+              straight: false,
+              out_mode: 'out',
+              bounce: false
+            }
+          },
+          interactivity: {
+            detect_on: 'canvas',
+            events: {
+              onhover: {
+                enable: true,
+                mode: 'grab'
+              },
+              onclick: {
+                enable: true,
+                mode: 'push'
+              },
+              resize: true
+            },
+            modes: {
+              grab: {
+                distance: 140,
+                line_linked: {
+                  opacity: 0.3
+                }
+              },
+              push: {
+                particles_nb: 4
+              }
+            }
+          },
+          retina_detect: true
+        })
+
+        // 设置默认日期为18年前（示例）
+        const defaultDate = new Date()
+        defaultDate.setFullYear(defaultDate.getFullYear() - 18)
+        document.getElementById('birthdate').valueAsDate = defaultDate
+      })
+
+      // 年龄计算逻辑
+      document.getElementById('ageForm').addEventListener('submit', function (e) {
+        e.preventDefault()
+
+        const birthdate = new Date(document.getElementById('birthdate').value)
+        const today = new Date()
+
+        // 验证日期有效性
+        if (birthdate >= today) {
+          alert('请输入一个过去的日期')
+          return
+        }
+
+        // 计算年龄
+        const age = calculateAge(birthdate, today)
+
+        // 显示结果（带动画）
+        showResult(age, birthdate, today)
+      })
+
+      // 计算年龄的核心函数
+      function calculateAge(birthDate, currentDate) {
+        let years = currentDate.getFullYear() - birthDate.getFullYear()
+        let months = currentDate.getMonth() - birthDate.getMonth()
+        let days = currentDate.getDate() - birthDate.getDate()
+
+        // 调整月份和天数
+        if (days < 0) {
+          months--
+          // 获取上一个月的天数
+          const prevMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0)
+          days += prevMonth.getDate()
+        }
+
+        // 调整年份和月份
+        if (months < 0) {
+          years--
+          months += 12
+        }
+
+        // 计算总天数
+        const totalDays = Math.floor((currentDate - birthDate) / (1000 * 60 * 60 * 24))
+
+        // 计算到下一个生日的天数
+        const nextBirthday = new Date(
+          currentDate.getFullYear(),
+          birthDate.getMonth(),
+          birthDate.getDate()
+        )
+        if (nextBirthday < currentDate) {
+          nextBirthday.setFullYear(currentDate.getFullYear() + 1)
+        }
+        const daysToBirthday = Math.ceil((nextBirthday - currentDate) / (1000 * 60 * 60 * 24))
+
+        // 计算今年年龄进度
+        const thisYearBirthday = new Date(
+          currentDate.getFullYear(),
+          birthDate.getMonth(),
+          birthDate.getDate()
+        )
+        const yearStart = new Date(currentDate.getFullYear(), 0, 1)
+        const yearEnd = new Date(currentDate.getFullYear() + 1, 0, 1)
+        const yearLength = yearEnd - yearStart
+        const daysPassedThisYear = currentDate - thisYearBirthday
+        const ageProgress =
+          daysPassedThisYear > 0
+            ? (daysPassedThisYear / yearLength) * 100
+            : ((currentDate -
+                new Date(
+                  currentDate.getFullYear() - 1,
+                  birthDate.getMonth(),
+                  birthDate.getDate()
+                )) /
+                yearLength) *
+              100
+
+        return {
+          years,
+          months,
+          days,
+          totalDays,
+          totalHours: totalDays * 24,
+          daysToBirthday,
+          ageProgress: Math.min(100, Math.max(0, ageProgress))
+        }
+      }
+
+      // 显示计算结果（带动画效果）
+      function showResult(age, birthDate, currentDate) {
+        // 隐藏初始提示，显示结果区域
+        document.getElementById('initialMessage').classList.add('hidden')
+        const resultElement = document.getElementById('result')
+        resultElement.classList.remove('hidden')
+
+        // 添加数字增长动画效果
+        animateValue('years', 0, age.years, 1500)
+        animateValue('months', 0, age.months, 1500)
+        animateValue('days', 0, age.days, 1500)
+
+        // 更新概览文本
+        document.getElementById(
+          'ageOverview'
+        ).textContent = `${age.years}岁 ${age.months}个月 ${age.days}天`
+
+        // 更新其他统计数据
+        document.getElementById('totalDays').textContent = age.totalDays.toLocaleString()
+        document.getElementById('totalHours').textContent = age.totalHours.toLocaleString()
+        document.getElementById('daysToBirthday').textContent = `${age.daysToBirthday} 天`
+
+        // 更新年龄进度
+        document.getElementById('ageProgressPercent').textContent = `${Math.round(
+          age.ageProgress
+        )}%`
+        // 进度条动画
+        setTimeout(() => {
+          document.getElementById('ageProgressBar').style.width = `${age.ageProgress}%`
+        }, 300)
+
+        // 添加结果区域的进入动画
+        resultElement.classList.add('animate-fade-in')
+        setTimeout(() => {
+          resultElement.classList.remove('animate-fade-in')
+        }, 1000)
+      }
+
+      // 数字增长动画函数
+      function animateValue(id, start, end, duration) {
+        const obj = document.getElementById(id)
+        let startTimestamp = null
+        const step = (timestamp) => {
+          if (!startTimestamp) startTimestamp = timestamp
+          const progress = Math.min((timestamp - startTimestamp) / duration, 1)
+          // 使用easeOutQuad缓动函数使动画更自然
+          const easeProgress = 1 - (1 - progress) * (1 - progress)
+          obj.textContent = Math.floor(easeProgress * (end - start) + start)
+          if (progress < 1) {
+            window.requestAnimationFrame(step)
+          }
+        }
+        window.requestAnimationFrame(step)
+      }
+    </script>
+  </body>
+</html>
