@@ -430,6 +430,22 @@
         border-color: var(--primary);
         color: var(--primary);
       }
+      .btn-wrong {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 2px solid #fecaca;
+        flex: 0 0 auto;
+        padding: 11px 16px;
+        position: relative;
+        transition:
+          opacity 0.15s,
+          transform 0.08s,
+          border-color 0.15s;
+      }
+      .btn-wrong:hover {
+        border-color: #dc2626;
+        background: #fee2e2;
+      }
 
       /* ===== 底部导航 ===== */
       .bottom-nav {
@@ -438,17 +454,12 @@
         border-top: 1px solid rgba(0, 0, 0, 0.05);
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: center;
+        gap: 12px;
         padding: 10px 16px;
         padding-bottom: max(10px, env(safe-area-inset-bottom));
         z-index: 200;
         box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.03);
-      }
-
-      .nav-group {
-        display: flex;
-        align-items: center;
-        gap: 10px;
       }
 
       .nav-btn {
@@ -817,25 +828,21 @@
         >
           📥 导入
         </button>
+        <button class="action-btn btn-wrong" id="wrongBtn">
+          📕 错题本
+          <span class="badge" id="wrongBadge">0</span>
+        </button>
       </div>
     </div>
 
     <!-- 底部导航 -->
     <div class="bottom-nav">
-      <div class="nav-group">
-        <button class="nav-btn nav-arrow" id="prevBtn">
-          <span class="nav-icon">←</span><span>上一题</span>
-        </button>
-        <button class="nav-btn nav-primary" id="nextBtn">
-          <span class="nav-icon">→</span><span>下一题</span>
-        </button>
-      </div>
-      <div class="nav-group">
-        <button class="nav-btn wrong-nav" id="wrongNavBtn">
-          <span class="nav-icon">📕</span><span>错题本</span>
-          <span class="badge hidden" id="wrongBadge">0</span>
-        </button>
-      </div>
+      <button class="nav-btn nav-arrow" id="prevBtn">
+        <span class="nav-icon">←</span><span>上一题</span>
+      </button>
+      <button class="nav-btn nav-primary" id="nextBtn">
+        <span class="nav-icon">→</span><span>下一题</span>
+      </button>
     </div>
 
     <!-- 导入弹窗 -->
@@ -1170,7 +1177,7 @@
         renderQuestion();
       };
 
-      document.getElementById("wrongNavBtn").onclick = () => {
+      document.getElementById("wrongBtn").onclick = () => {
         if (!isWrongMode) {
           if (wrongList.length === 0) {
             showToast("📭 错题本还是空的");
@@ -1202,7 +1209,7 @@
       }
 
       function updateWrongNavStyle() {
-        const btn = document.getElementById("wrongNavBtn");
+        const btn = document.getElementById("wrongBtn");
         btn.classList.toggle("is-active", isWrongMode);
       }
 
