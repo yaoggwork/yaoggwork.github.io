@@ -569,7 +569,10 @@
             <h3>📥 导入题库</h3>
             <p>粘贴 JSON 题库内容，点「导入」即可</p>
             <textarea id="jsonInput" placeholder='[{"question":"题目","options":["A. xxx","B. xxx","C. xxx","D. xxx"],"answer":"A","explain":"解析"}]'></textarea>
-            <div class="modal-hint">打开弹窗会自动尝试读取剪贴板</div>
+            <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                <button id="pasteBtn" style="padding:6px 14px; border:none; border-radius:8px; background:rgba(74,144,226,.08); color:var(--primary); font-size:13px; font-weight:600; cursor:pointer; transition:all .15s;" onclick="pasteFromClipboard()">📋 粘贴</button>
+            </div>
+            <div class="modal-hint">点击「粘贴」可从剪贴板导入内容</div>
             <div class="modal-btns">
                 <button class="modal-btn modal-btn-cancel" onclick="closeImportModal()">取消</button>
                 <button class="modal-btn modal-btn-confirm" onclick="confirmImport()">导入</button>
@@ -651,18 +654,27 @@
             document.getElementById("importModal").classList.remove("hidden");
             const textarea = document.getElementById("jsonInput");
             textarea.value = "";
-            // 自动尝试读取剪贴板
-            navigator.clipboard.readText().then(text => {
-                if (text && text.trim().startsWith("[")) {
-                    textarea.value = text;
-                    showToast("📋 已从剪贴板粘贴");
-                }
-            }).catch(() => {});
-            textarea.focus();
+            setTimeout(() => {
+                textarea.focus();
+                textarea.scrollTop = 0;
+            }, 100);
         }
 
         function closeImportModal() {
             document.getElementById("importModal").classList.add("hidden");
+        }
+
+        function pasteFromClipboard() {
+            navigator.clipboard.readText().then(text => {
+                if (text && text.trim()) {
+                    document.getElementById("jsonInput").value = text;
+                    showToast("📋 已从剪贴板粘贴");
+                } else {
+                    showToast("📭 剪贴板为空");
+                }
+            }).catch(() => {
+                showToast("❌ 无法访问剪贴板");
+            });
         }
 
         // 点击遮罩关闭
