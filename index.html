@@ -152,11 +152,11 @@
         min-height: 0;
         display: flex;
         flex-direction: column;
-        padding: 8px;
+        padding: 6px;
         max-width: 600px;
         margin: 0 auto;
         width: 100%;
-        gap: 8px;
+        gap: 6px;
       }
 
       /* ===== 题目卡片 ===== */
@@ -166,9 +166,9 @@
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         background: var(--card);
-        border-radius: 12px;
-        padding: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        border-radius: 10px;
+        padding: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
         animation: slideIn 0.25s ease;
       }
 
@@ -193,20 +193,20 @@
 
       /* ===== 选项 ===== */
       .options {
-        margin-top: 12px;
+        margin-top: 10px;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
       }
 
       .option {
         position: relative;
-        padding: 12px 14px 12px 44px;
-        border-radius: 12px;
+        padding: 10px 12px 10px 40px;
+        border-radius: 10px;
         background: #f8f9fa;
         border: 2px solid transparent;
-        font-size: 14px;
-        line-height: 1.5;
+        font-size: 13px;
+        line-height: 1.45;
         cursor: pointer;
         user-select: none;
         transition:
@@ -224,15 +224,15 @@
 
       .option-letter {
         position: absolute;
-        left: 12px;
+        left: 10px;
         top: 50%;
         transform: translateY(-50%);
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
         border-radius: 50%;
         background: var(--border);
         color: var(--sub);
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 700;
         display: flex;
         align-items: center;
@@ -307,8 +307,8 @@
 
       /* ===== 答案解析区 ===== */
       .result-block {
-        margin-top: 12px;
-        padding-top: 12px;
+        margin-top: 10px;
+        padding-top: 10px;
         border-top: 1px solid #f0f0f0;
         animation: fadeIn 0.2s ease;
       }
@@ -324,15 +324,15 @@
       .result-row {
         display: flex;
         align-items: center;
-        gap: 6px;
-        margin-bottom: 8px;
+        gap: 5px;
+        margin-bottom: 6px;
       }
       .result-icon {
-        font-size: 18px;
+        font-size: 16px;
         line-height: 1;
       }
       .result-text {
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 700;
       }
       .result-text.correct-text {
@@ -343,22 +343,22 @@
       }
 
       .answer-label {
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 600;
         color: var(--primary);
         background: rgba(74, 144, 226, 0.1);
-        padding: 3px 8px;
-        border-radius: 6px;
+        padding: 2px 6px;
+        border-radius: 4px;
         margin-left: auto;
       }
 
       .explain {
-        font-size: 14px;
+        font-size: 13px;
         color: #4b5563;
         background: #f8f9fa;
-        padding: 12px 14px;
-        border-radius: 10px;
-        line-height: 1.65;
+        padding: 10px 12px;
+        border-radius: 8px;
+        line-height: 1.6;
         border-left: 3px solid var(--primary);
       }
 
@@ -378,19 +378,19 @@
       .action-card {
         flex-shrink: 0;
         background: var(--card);
-        border-radius: 12px;
-        padding: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        border-radius: 10px;
+        padding: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
         display: flex;
-        gap: 10px;
+        gap: 8px;
       }
 
       .action-btn {
         flex: 1;
-        padding: 11px 10px;
-        border-radius: 12px;
+        padding: 9px 8px;
+        border-radius: 10px;
         border: none;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 600;
         cursor: pointer;
         transition:
@@ -410,7 +410,7 @@
           var(--primary-dark)
         );
         color: #fff;
-        box-shadow: 0 3px 10px rgba(74, 144, 226, 0.35);
+        box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
       }
       .btn-show:active {
         box-shadow: 0 2px 6px rgba(74, 144, 226, 0.25);
@@ -420,7 +420,7 @@
         color: var(--sub);
         border: 2px solid var(--border);
         flex: 0 0 auto;
-        padding: 11px 16px;
+        padding: 9px 12px;
         transition:
           opacity 0.15s,
           transform 0.08s,
@@ -435,7 +435,7 @@
         color: #dc2626;
         border: 2px solid #fecaca;
         flex: 0 0 auto;
-        padding: 11px 16px;
+        padding: 9px 12px;
         position: relative;
         transition:
           opacity 0.15s,
@@ -455,29 +455,29 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 12px;
-        padding: 10px 16px;
-        padding-bottom: max(10px, env(safe-area-inset-bottom));
+        gap: 10px;
+        padding: 8px 12px;
+        padding-bottom: max(8px, env(safe-area-inset-bottom));
         z-index: 200;
-        box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.03);
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.02);
       }
 
       .nav-btn {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 3px;
-        padding: 12px 20px;
-        border-radius: 16px;
+        gap: 2px;
+        padding: 10px 16px;
+        border-radius: 14px;
         border: none;
         background: transparent;
         cursor: pointer;
         transition: all 0.15s ease;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 600;
         color: var(--sub);
         position: relative;
-        min-width: 72px;
+        min-width: 64px;
       }
       .nav-btn:hover {
         background: rgba(0, 0, 0, 0.04);
@@ -487,7 +487,7 @@
         transform: scale(0.94);
       }
       .nav-btn .nav-icon {
-        font-size: 24px;
+        font-size: 22px;
         line-height: 1;
       }
 
@@ -800,7 +800,7 @@
         <div id="emptyState" class="empty-state hidden">
           <div class="emoji">📥</div>
           <p>还没有题库</p>
-          <p class="sub">点下方「导入」粘贴 JSON 题目</p>
+          <p class="sub">点下方「导入」粘贴 题目</p>
           <button class="empty-import-btn" onclick="openImportModal()">
             导入题库
           </button>
