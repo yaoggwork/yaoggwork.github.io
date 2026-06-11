@@ -1,446 +1,915 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>智能年龄计算器</title>
-    <!-- 引入Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入Font Awesome -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css"
-      rel="stylesheet"
-    />
-    <!-- 引入粒子背景库 -->
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🎯 刷题达人</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --primary-dark: #2e74c9;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --orange: #f97316;
+            --bg: #f0f4f8;
+            --card: #ffffff;
+            --text: #1a1a2e;
+            --sub: #6b7280;
+            --border: #e5e7eb;
+        }
 
-    <!-- 配置Tailwind自定义样式 -->
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: '#4F46E5', // 主色调：靛蓝色
-              secondary: '#EC4899', // 辅助色：粉红色
-              accent: '#10B981', // 强调色：绿色
-              dark: '#1E293B',
-              light: '#F8FAFC'
-            },
-            fontFamily: {
-              inter: ['Inter', 'system-ui', 'sans-serif']
-            }
-          }
-        }
-      }
-    </script>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-    <style type="text/tailwindcss">
-      @layer utilities {
-        .content-auto {
-          content-visibility: auto;
-        }
-        .glass {
-          @apply bg-white/10 backdrop-blur-lg border border-white/20;
-        }
-        .text-shadow {
-          @apply text-shadow-md;
-        }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-        .animate-pulse-slow {
-          animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-      }
+        .hidden { display: none !important; }
 
-      @keyframes float {
-        0% {
-          transform: translateY(0px);
+        html, body { height: 100%; overflow: hidden; }
+
+        body {
+            background: var(--bg);
+            font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            height: 100dvh;
         }
-        50% {
-          transform: translateY(-15px);
+
+        /* ===== 顶部栏 ===== */
+        .topbar {
+            flex-shrink: 0;
+            z-index: 100;
+            background: var(--card);
+            padding: 12px 16px 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.04);
         }
-        100% {
-          transform: translateY(0px);
+
+        .topbar-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-      }
+
+        .stat-chips { display: flex; gap: 10px; align-items: center; }
+
+        .chip {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 12px; padding: 4px 12px; border-radius: 20px;
+            font-weight: 600; letter-spacing: .3px;
+            backdrop-filter: blur(4px);
+            transition: transform .15s;
+        }
+        .chip:active { transform: scale(.95); }
+        .chip .chip-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .chip-green { background: rgba(34,197,94,.1); color: #16a34a; }
+        .chip-green .chip-dot { background: var(--success); box-shadow: 0 0 4px rgba(34,197,94,.5); }
+        .chip-red   { background: rgba(239,68,68,.1); color: #dc2626; }
+        .chip-red .chip-dot   { background: var(--danger); box-shadow: 0 0 4px rgba(239,68,68,.5); }
+        .chip-gray  { background: rgba(107,114,128,.08); color: var(--sub); }
+        .chip-gray .chip-dot  { background: var(--sub); }
+
+        .progress-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+
+        .progress-track { flex: 1; height: 6px; background: #f3f4f6; border-radius: 99px; overflow: hidden; }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #7bb3f0);
+            border-radius: 99px;
+            transition: width .3s ease;
+            box-shadow: 0 0 8px rgba(74,144,226,.4);
+        }
+
+        .progress-label { 
+            font-size: 12px; 
+            color: var(--sub); 
+            white-space: nowrap; 
+            font-weight: 600;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        /* ===== 主内容区 ===== */
+        .main {
+            flex: 1; min-height: 0;
+            display: flex; flex-direction: column;
+            padding: 12px;
+            max-width: 600px; margin: 0 auto; width: 100%;
+            gap: 12px;
+        }
+
+        /* ===== 题目卡片 ===== */
+        .card {
+            flex: 1; min-height: 0; overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background: var(--card); border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.06);
+            animation: slideIn .25s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-text { 
+            font-size: 17px; 
+            font-weight: 600; 
+            line-height: 1.7; 
+            color: var(--text); 
+            letter-spacing: .3px;
+        }
+
+        /* ===== 选项 ===== */
+        .options { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+
+        .option {
+            position: relative; padding: 14px 16px 14px 48px;
+            border-radius: 14px; background: #f8f9fa;
+            border: 2px solid transparent;
+            font-size: 15px; line-height: 1.5;
+            cursor: pointer; user-select: none;
+            transition: border-color .15s, background .15s, transform .08s;
+        }
+
+        .option:hover { background: #f1f2f3; }
+        .option:active { transform: scale(.98); }
+
+        .option-letter {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            width: 24px; height: 24px; border-radius: 50%;
+            background: var(--border); color: var(--sub);
+            font-size: 12px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            transition: background .15s, color .15s, transform .15s;
+        }
+
+        .option.correct {
+            background: #f0fdf4; border-color: transparent;
+            box-shadow: 0 0 0 1.5px var(--success), inset 3px 0 0 var(--success);
+            animation: pop .2s ease;
+        }
+        .option.correct .option-letter { background: var(--success); color: #fff; transform: translateY(-50%) scale(1.1); }
+
+        .option.wrong {
+            background: #fff5f5; border-color: transparent;
+            box-shadow: 0 0 0 1.5px var(--danger), inset 3px 0 0 var(--danger);
+            animation: shake .35s ease;
+        }
+        .option.wrong .option-letter { background: var(--danger); color: #fff; }
+
+        .option.disabled { cursor: default; pointer-events: none; }
+
+        @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.03); } 100% { transform: scale(1); } }
+        @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-2px); } 80% { transform: translateX(2px); } }
+
+        /* ===== 答案解析区 ===== */
+        .result-block { 
+            margin-top: 16px; 
+            padding-top: 16px;
+            border-top: 1px solid #f0f0f0;
+            animation: fadeIn .2s ease; 
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .result-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .result-icon { font-size: 20px; line-height: 1; }
+        .result-text { font-size: 15px; font-weight: 700; }
+        .result-text.correct-text { color: var(--success); }
+        .result-text.wrong-text   { color: var(--danger); }
+
+        .answer-label { 
+            font-size: 12px; 
+            font-weight: 600; 
+            color: var(--primary); 
+            background: rgba(74,144,226,.1); 
+            padding: 4px 10px; 
+            border-radius: 8px; 
+            margin-left: auto; 
+        }
+
+        .explain { 
+            font-size: 14px; 
+            color: #4b5563; 
+            background: #f8f9fa; 
+            padding: 14px 16px; 
+            border-radius: 12px; 
+            line-height: 1.7; 
+            border-left: 4px solid var(--primary);
+        }
+
+        .option.highlight-correct { background: #f0fdf4; border-color: transparent; box-shadow: 0 0 0 1.5px var(--success), inset 3px 0 0 var(--success); }
+        .option.highlight-correct .option-letter { background: var(--success); color: #fff; }
+
+        /* ===== 操作按钮 ===== */
+        .action-card {
+            flex-shrink: 0; 
+            background: var(--card); 
+            border-radius: 16px;
+            padding: 12px; 
+            box-shadow: 0 4px 16px rgba(0,0,0,.05);
+            display: flex; 
+            gap: 12px;
+        }
+
+        .action-btn {
+            flex: 1; 
+            padding: 13px 12px; 
+            border-radius: 14px; 
+            border: none;
+            font-size: 15px; 
+            font-weight: 600; 
+            cursor: pointer;
+            transition: opacity .15s, transform .08s, box-shadow .15s;
+        }
+        .action-btn:active { transform: scale(.96); opacity: .85; }
+
+        .btn-show { 
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+            color: #fff; 
+            box-shadow: 0 4px 14px rgba(74,144,226,.4);
+        }
+        .btn-show:active { box-shadow: 0 2px 8px rgba(74,144,226,.3); }
+        .btn-import { 
+            background: #f8f9fa; 
+            color: var(--sub); 
+            border: 2px solid var(--border); 
+            flex: 0 0 auto; 
+            padding: 13px 20px; 
+            transition: opacity .15s, transform .08s, border-color .15s;
+        }
+        .btn-import:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* ===== 底部导航 ===== */
+        .bottom-nav {
+            flex-shrink: 0; 
+            background: var(--card); 
+            border-top: 1px solid rgba(0,0,0,.05);
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            padding: 12px 20px; 
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            z-index: 200; 
+            box-shadow: 0 -4px 20px rgba(0,0,0,.04);
+        }
+
+        .nav-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 3px;
+            padding: 12px 20px; 
+            border-radius: 16px; 
+            border: none; 
+            background: transparent;
+            cursor: pointer; 
+            transition: all .15s ease;
+            font-size: 12px; 
+            font-weight: 600; 
+            color: var(--sub);
+            position: relative;
+            min-width: 72px;
+        }
+        .nav-btn:hover { 
+            background: rgba(0,0,0,.04); 
+            transform: translateY(-1px);
+        }
+        .nav-btn:active { transform: scale(.94); }
+        .nav-btn .nav-icon { font-size: 24px; line-height: 1; }
+
+        .nav-btn.nav-arrow {
+            background: rgba(74,144,226,.08);
+            color: var(--primary);
+            padding: 13px 22px;
+            box-shadow: 0 2px 8px rgba(74,144,226,.12);
+        }
+        .nav-btn.nav-arrow:hover {
+            background: rgba(74,144,226,.15);
+            box-shadow: 0 4px 12px rgba(74,144,226,.18);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.nav-primary { 
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+            color: #fff; 
+            padding: 14px 28px; 
+            box-shadow: 0 5px 20px rgba(74,144,226,.45);
+            min-width: 80px;
+        }
+        .nav-btn.nav-primary:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 7px 24px rgba(74,144,226,.55);
+        }
+        .nav-btn.nav-primary:active { 
+            transform: scale(.94); 
+            box-shadow: 0 3px 10px rgba(74,144,226,.3); 
+        }
+
+        .nav-btn.wrong-nav { 
+            position: relative; 
+            min-width: 76px;
+            padding: 13px 22px;
+        }
+        .nav-btn.wrong-nav:not(.is-active):hover {
+            background: rgba(239,68,68,.06);
+            color: var(--danger);
+        }
+        .nav-btn.wrong-nav .badge {
+            position: absolute; 
+            top: -4px; 
+            right: 6px;
+            min-width: 20px; 
+            height: 20px; 
+            border-radius: 99px;
+            background: var(--danger); 
+            color: #fff;
+            font-size: 10px; 
+            font-weight: 700;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 0 6px;
+            box-shadow: 0 3px 10px rgba(239,68,68,.5);
+        }
+        .nav-btn.wrong-nav.is-active { 
+            color: #fff; 
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            box-shadow: 0 4px 16px rgba(239,68,68,.4);
+        }
+        .nav-btn.wrong-nav.is-active:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239,68,68,.5);
+        }
+
+        /* ===== 弹窗 ===== */
+        .modal-overlay {
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0,0,0,.45);
+            z-index: 500; 
+            display: flex; 
+            align-items: flex-start; 
+            justify-content: center;
+            padding-top: max(10vh, env(safe-area-inset-top));
+            padding-left: 12px;
+            padding-right: 12px;
+            animation: fadeIn .15s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal {
+            background: var(--card); 
+            border-radius: 24px;
+            padding: 28px 24px 24px; 
+            width: 100%; 
+            max-width: 420px;
+            box-shadow: 0 12px 40px rgba(0,0,0,.18);
+            animation: modalSlideIn .2s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-20px) scale(.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal h3 { font-size: 19px; font-weight: 700; margin-bottom: 8px; }
+
+        .modal p { font-size: 14px; color: var(--sub); margin-bottom: 16px; line-height: 1.6; }
+
+        .modal textarea {
+            width: 100%; 
+            border: 2px solid var(--border);
+            border-radius: 14px; 
+            padding: 14px; 
+            font-size: 14px;
+            font-family: "SF Mono", "Menlo", monospace; 
+            resize: none;
+            outline: none; 
+            transition: border-color .15s, box-shadow .15s;
+            background: #fafafa;
+        }
+        .modal textarea:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 3px rgba(74,144,226,.1);
+        }
+        .modal textarea { height: 180px; }
+
+        .modal-hint {
+            font-size: 12px; 
+            color: var(--sub); 
+            margin-top: 10px; 
+            margin-bottom: 18px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .modal-btns { display: flex; gap: 12px; }
+
+        .modal-btn {
+            flex: 1; 
+            padding: 14px; 
+            border-radius: 14px; 
+            border: none;
+            font-size: 15px; 
+            font-weight: 600; 
+            cursor: pointer;
+            transition: opacity .15s, transform .15s, box-shadow .15s;
+        }
+        .modal-btn:active { 
+            opacity: .85; 
+            transform: scale(.96); 
+        }
+
+        .modal-btn-cancel { 
+            background: #f8f9fa; 
+            color: var(--sub); 
+            border: 2px solid var(--border);
+        }
+        .modal-btn-cancel:hover { border-color: #d1d5db; }
+        .modal-btn-confirm { 
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+            color: #fff; 
+            box-shadow: 0 4px 14px rgba(74,144,226,.4);
+        }
+        .modal-btn-confirm:active { box-shadow: 0 2px 8px rgba(74,144,226,.3); }
+
+        
+
+        /* ===== Toast ===== */
+        #toast {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.85);
+            background: rgba(20,20,30,.85); color: #fff;
+            padding: 12px 22px; border-radius: 14px;
+            font-size: 15px; font-weight: 500;
+            z-index: 999; opacity: 0; pointer-events: none;
+            transition: opacity .2s, transform .2s;
+            backdrop-filter: blur(6px); text-align: center; max-width: 80vw;
+        }
+        #toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+        /* ===== 空状态 ===== */
+        .empty-state { 
+            text-align: center; 
+            padding: 48px 24px; 
+            color: var(--sub); 
+        }
+        .empty-state .emoji { 
+            font-size: 56px; 
+            margin-bottom: 16px; 
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .empty-state p { font-size: 17px; margin-bottom: 8px; font-weight: 500; }
+        .empty-state .sub { font-size: 14px; color: #9ca3af; }
+
+        .empty-import-btn {
+            display: inline-block; 
+            margin-top: 20px;
+            padding: 14px 32px; 
+            border-radius: 14px; 
+            border: none;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff; 
+            font-size: 16px; 
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(74,144,226,.4);
+            transition: transform .15s, box-shadow .15s;
+        }
+        .empty-import-btn:active { 
+            transform: scale(.96); 
+            box-shadow: 0 2px 8px rgba(74,144,226,.3);
+        }
     </style>
-  </head>
+</head>
 
-  <body
-    class="font-inter bg-gradient-to-br from-dark to-slate-900 text-light min-h-screen overflow-x-hidden"
-  >
-    <!-- 粒子背景容器 -->
-    <div id="particles-js" class="fixed inset-0 z-0 opacity-60"></div>
+<body>
 
-    <!-- 主容器 -->
-    <div class="relative z-10 container mx-auto px-4 py-12 max-w-5xl">
-      <!-- 页面标题 -->
-      <header class="text-center mb-12 animate-float">
-        <h1
-          class="text-[clamp(2rem,5vw,3.5rem)] font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent mb-4"
-        >
-          智能年龄计算器
-        </h1>
-        <p class="text-slate-300 text-[clamp(1rem,2vw,1.2rem)] max-w-2xl mx-auto">
-          输入您的出生年月日，精确计算您的年龄（岁、月、天）
-        </p>
-      </header>
-
-      <!-- 计算器主体 -->
-      <main class="grid md:grid-cols-5 gap-8">
-        <!-- 输入区域 -->
-        <div
-          class="md:col-span-2 glass rounded-2xl p-6 shadow-xl transform transition-all duration-500 hover:shadow-primary/20 hover:-translate-y-1"
-        >
-          <h2 class="text-xl font-semibold mb-6 flex items-center">
-            <i class="fa fa-calendar-plus-o text-primary mr-2"></i>
-            输入出生信息
-          </h2>
-
-          <form id="ageForm" class="space-y-6">
-            <div class="space-y-2">
-              <label for="birthdate" class="block text-slate-300 font-medium">出生日期</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                  <i class="fa fa-calendar"></i>
-                </span>
-                <input
-                  type="date"
-                  id="birthdate"
-                  required
-                  class="w-full pl-10 pr-4 py-3 rounded-lg bg-dark/50 border border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/30 transition-all outline-none text-light"
-                />
-              </div>
+    <!-- 顶部状态栏 -->
+    <div class="topbar">
+        <div class="topbar-row">
+            <div class="stat-chips">
+                <span class="chip chip-green"><span class="chip-dot"></span><span id="chipCorrect">0</span></span>
+                <span class="chip chip-red"><span class="chip-dot"></span><span id="chipWrong">0</span></span>
+                <span class="chip chip-gray"><span class="chip-dot"></span><span id="chipRate">--</span></span>
             </div>
-
-            <div class="pt-4">
-              <button
-                type="submit"
-                class="w-full bg-gradient-to-r from-primary to-secondary text-white font-medium py-3 px-6 rounded-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98] flex items-center justify-center"
-              >
-                <i class="fa fa-calculator mr-2"></i>
-                计算年龄
-              </button>
-            </div>
-          </form>
-
-          <!-- 装饰元素 -->
-          <div
-            class="absolute -bottom-4 -right-4 w-20 h-20 bg-accent/20 rounded-full blur-xl opacity-70 animate-pulse-slow"
-          ></div>
-          <div
-            class="absolute -top-6 -left-6 w-16 h-16 bg-primary/20 rounded-full blur-xl opacity-70 animate-pulse-slow"
-            style="animation-delay: 1s"
-          ></div>
         </div>
-
-        <!-- 结果展示区域 -->
-        <div class="md:col-span-3 glass rounded-2xl p-6 shadow-xl relative overflow-hidden">
-          <h2 class="text-xl font-semibold mb-6 flex items-center">
-            <i class="fa fa-bar-chart text-secondary mr-2"></i>
-            年龄计算结果
-          </h2>
-
-          <!-- 初始提示 -->
-          <div
-            id="initialMessage"
-            class="h-64 flex flex-col items-center justify-center text-slate-400 text-center p-4"
-          >
-            <i class="fa fa-user-circle-o text-6xl mb-4 opacity-30"></i>
-            <p>请输入出生日期并点击计算按钮</p>
-          </div>
-
-          <!-- 结果展示（默认隐藏） -->
-          <div id="result" class="hidden space-y-8">
-            <!-- 年龄概览 -->
-            <div class="text-center">
-              <p class="text-slate-400 mb-2">您的精确年龄是</p>
-              <h3
-                id="ageOverview"
-                class="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary"
-              ></h3>
+        <div class="progress-row">
+            <div class="progress-track">
+                <div class="progress-fill" id="progressFill" style="width:0%"></div>
             </div>
-
-            <!-- 详细年龄数据 -->
-            <div class="grid grid-cols-3 gap-4">
-              <div
-                class="bg-dark/30 rounded-xl p-4 text-center transform transition-all duration-300 hover:scale-105 hover:bg-dark/50"
-              >
-                <div id="years" class="text-3xl md:text-4xl font-bold text-primary mb-1">0</div>
-                <div class="text-slate-400 text-sm">年</div>
-              </div>
-              <div
-                class="bg-dark/30 rounded-xl p-4 text-center transform transition-all duration-300 hover:scale-105 hover:bg-dark/50"
-              >
-                <div id="months" class="text-3xl md:text-4xl font-bold text-secondary mb-1">0</div>
-                <div class="text-slate-400 text-sm">月</div>
-              </div>
-              <div
-                class="bg-dark/30 rounded-xl p-4 text-center transform transition-all duration-300 hover:scale-105 hover:bg-dark/50"
-              >
-                <div id="days" class="text-3xl md:text-4xl font-bold text-accent mb-1">0</div>
-                <div class="text-slate-400 text-sm">天</div>
-              </div>
-            </div>
-
-            <!-- 额外统计 -->
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2">
-              <div class="bg-dark/20 rounded-lg p-3 text-sm">
-                <p class="text-slate-400">总天数</p>
-                <p id="totalDays" class="text-accent font-medium"></p>
-              </div>
-              <div class="bg-dark/20 rounded-lg p-3 text-sm">
-                <p class="text-slate-400">总小时</p>
-                <p id="totalHours" class="text-accent font-medium"></p>
-              </div>
-              <div class="bg-dark/20 rounded-lg p-3 text-sm md:col-span-1 col-span-2">
-                <p class="text-slate-400">下一个生日还有</p>
-                <p id="daysToBirthday" class="text-secondary font-medium"></p>
-              </div>
-            </div>
-
-            <!-- 可视化年龄进度 -->
-            <div class="pt-4">
-              <div class="flex justify-between text-sm mb-2">
-                <span class="text-slate-400">今年年龄进度</span>
-                <span id="ageProgressPercent" class="text-primary font-medium">0%</span>
-              </div>
-              <div class="h-3 bg-dark/30 rounded-full overflow-hidden">
-                <div
-                  id="ageProgressBar"
-                  class="h-full bg-gradient-to-r from-primary to-accent w-0 transition-all duration-1000 ease-out"
-                ></div>
-              </div>
-            </div>
-          </div>
+            <span class="progress-label" id="progressLabel">0/0</span>
         </div>
-      </main>
-
-      <!-- 页脚 -->
-      <footer class="mt-16 text-center text-slate-500 text-sm">
-        <p>© 2025 智能年龄计算器 | 精确计算每一刻时光</p>
-      </footer>
     </div>
 
+    <!-- 主区域 -->
+    <div class="main">
+        <div class="card" id="questionCard">
+            <div id="emptyState" class="empty-state hidden">
+                <div class="emoji">📥</div>
+                <p>还没有题库</p>
+                <p class="sub">点下方「导入」粘贴 JSON 题目</p>
+                <button class="empty-import-btn" onclick="openImportModal()">导入题库</button>
+            </div>
+            <div id="questionBody" class="hidden">
+                <div class="question-text" id="questionText"></div>
+                <div class="options" id="options"></div>
+                <div class="result-block hidden" id="resultBlock">
+                    <div class="result-row">
+                        <span class="result-icon" id="resultIcon"></span>
+                        <span class="result-text" id="resultText"></span>
+                        <span class="answer-label" id="answerLabel"></span>
+                    </div>
+                    <div class="explain" id="explain"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-card">
+            <button class="action-btn btn-show" id="showBtn">👁 显示答案</button>
+            <button class="action-btn btn-import" id="importBtn" onclick="openImportModal()">📥 导入</button>
+        </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <div class="nav-group">
+            <button class="nav-btn nav-arrow" id="prevBtn">
+                <span class="nav-icon">←</span><span>上一题</span>
+            </button>
+            <button class="nav-btn nav-primary" id="nextBtn">
+                <span class="nav-icon">→</span><span>下一题</span>
+            </button>
+        </div>
+        <div class="nav-group">
+            <button class="nav-btn wrong-nav" id="wrongNavBtn">
+                <span class="nav-icon">📕</span><span>错题本</span>
+                <span class="badge hidden" id="wrongBadge">0</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 导入弹窗 -->
+    <div class="modal-overlay hidden" id="importModal">
+        <div class="modal">
+            <h3>📥 导入题库</h3>
+            <p>粘贴 JSON 题库内容，点「导入」即可</p>
+            <textarea id="jsonInput" placeholder='[{"question":"题目","options":["A. xxx","B. xxx","C. xxx","D. xxx"],"answer":"A","explain":"解析"}]'></textarea>
+            <div class="modal-hint">打开弹窗会自动尝试读取剪贴板</div>
+            <div class="modal-btns">
+                <button class="modal-btn modal-btn-cancel" onclick="closeImportModal()">取消</button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmImport()">导入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast"></div>
+
     <script>
-      // 初始化粒子背景
-      document.addEventListener('DOMContentLoaded', function () {
-        particlesJS('particles-js', {
-          particles: {
-            number: {
-              value: 80,
-              density: {
-                enable: true,
-                value_area: 800
-              }
-            },
-            color: {
-              value: ['#4F46E5', '#EC4899', '#10B981']
-            },
-            shape: {
-              type: 'circle'
-            },
-            opacity: {
-              value: 0.5,
-              random: true
-            },
-            size: {
-              value: 3,
-              random: true
-            },
-            line_linked: {
-              enable: true,
-              distance: 150,
-              color: '#4F46E5',
-              opacity: 0.1,
-              width: 1
-            },
-            move: {
-              enable: true,
-              speed: 1,
-              direction: 'none',
-              random: true,
-              straight: false,
-              out_mode: 'out',
-              bounce: false
-            }
-          },
-          interactivity: {
-            detect_on: 'canvas',
-            events: {
-              onhover: {
-                enable: true,
-                mode: 'grab'
-              },
-              onclick: {
-                enable: true,
-                mode: 'push'
-              },
-              resize: true
-            },
-            modes: {
-              grab: {
-                distance: 140,
-                line_linked: {
-                  opacity: 0.3
+        // ===== 数据 =====
+        let allQuestions = [];
+        let currentList = [];
+        let current = 0;
+        let wrongList = JSON.parse(localStorage.getItem("wrong893")) || [];
+        let isWrongMode = false;
+        let stats = { correct: 0, wrong: 0 };
+        let answered = false;
+        
+
+        // ===== Toast =====
+        let toastTimer = null;
+        function showToast(msg, duration = 1500) {
+            const t = document.getElementById("toast");
+            t.textContent = msg;
+            t.classList.add("show");
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.remove("show"), duration);
+        }
+
+        // ===== 智能加载：先尝试 fetch 本地 JSON，失败则读 localStorage =====
+        async function smartLoad() {
+            // 1) 先尝试 fetch 同目录下的 questions.json
+            try {
+                const res = await fetch("questions.json");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data) && data.length > 0) {
+                        allQuestions = data;
+                        localStorage.setItem("questions893", JSON.stringify(allQuestions));
+                        initAfterLoad();
+                        showToast("📂 已加载 " + allQuestions.length + " 题");
+                        return;
+                    }
                 }
-              },
-              push: {
-                particles_nb: 4
-              }
+            } catch (e) {
+                // file:// 协议下 fetch 会失败，这是正常的
             }
-          },
-          retina_detect: true
-        })
 
-        // 设置默认日期为18年前（示例）
-        const defaultDate = new Date()
-        defaultDate.setFullYear(defaultDate.getFullYear() - 18)
-        document.getElementById('birthdate').valueAsDate = defaultDate
-      })
+            // 2) fetch 失败 → 读 localStorage
+            const saved = localStorage.getItem("questions893");
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    if (Array.isArray(data) && data.length > 0) {
+                        allQuestions = data;
+                        initAfterLoad();
+                        return;
+                    }
+                } catch (e) {}
+            }
 
-      // 年龄计算逻辑
-      document.getElementById('ageForm').addEventListener('submit', function (e) {
-        e.preventDefault()
-
-        const birthdate = new Date(document.getElementById('birthdate').value)
-        const today = new Date()
-
-        // 验证日期有效性
-        if (birthdate >= today) {
-          alert('请输入一个过去的日期')
-          return
+            // 3) 都没有 → 空状态
+            initAfterLoad();
         }
 
-        // 计算年龄
-        const age = calculateAge(birthdate, today)
-
-        // 显示结果（带动画）
-        showResult(age, birthdate, today)
-      })
-
-      // 计算年龄的核心函数
-      function calculateAge(birthDate, currentDate) {
-        let years = currentDate.getFullYear() - birthDate.getFullYear()
-        let months = currentDate.getMonth() - birthDate.getMonth()
-        let days = currentDate.getDate() - birthDate.getDate()
-
-        // 调整月份和天数
-        if (days < 0) {
-          months--
-          // 获取上一个月的天数
-          const prevMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0)
-          days += prevMonth.getDate()
+        function initAfterLoad() {
+            currentList = allQuestions;
+            current = 0;
+            updateWrongBadge();
+            renderQuestion();
         }
 
-        // 调整年份和月份
-        if (months < 0) {
-          years--
-          months += 12
+        smartLoad();
+
+        // ===== 导入弹窗 =====
+        function openImportModal() {
+            document.getElementById("importModal").classList.remove("hidden");
+            const textarea = document.getElementById("jsonInput");
+            textarea.value = "";
+            // 自动尝试读取剪贴板
+            navigator.clipboard.readText().then(text => {
+                if (text && text.trim().startsWith("[")) {
+                    textarea.value = text;
+                    showToast("📋 已从剪贴板粘贴");
+                }
+            }).catch(() => {});
+            textarea.focus();
         }
 
-        // 计算总天数
-        const totalDays = Math.floor((currentDate - birthDate) / (1000 * 60 * 60 * 24))
-
-        // 计算到下一个生日的天数
-        const nextBirthday = new Date(
-          currentDate.getFullYear(),
-          birthDate.getMonth(),
-          birthDate.getDate()
-        )
-        if (nextBirthday < currentDate) {
-          nextBirthday.setFullYear(currentDate.getFullYear() + 1)
+        function closeImportModal() {
+            document.getElementById("importModal").classList.add("hidden");
         }
-        const daysToBirthday = Math.ceil((nextBirthday - currentDate) / (1000 * 60 * 60 * 24))
 
-        // 计算今年年龄进度
-        const thisYearBirthday = new Date(
-          currentDate.getFullYear(),
-          birthDate.getMonth(),
-          birthDate.getDate()
-        )
-        const yearStart = new Date(currentDate.getFullYear(), 0, 1)
-        const yearEnd = new Date(currentDate.getFullYear() + 1, 0, 1)
-        const yearLength = yearEnd - yearStart
-        const daysPassedThisYear = currentDate - thisYearBirthday
-        const ageProgress =
-          daysPassedThisYear > 0
-            ? (daysPassedThisYear / yearLength) * 100
-            : ((currentDate -
-                new Date(
-                  currentDate.getFullYear() - 1,
-                  birthDate.getMonth(),
-                  birthDate.getDate()
-                )) /
-                yearLength) *
-              100
+        // 点击遮罩关闭
+        document.getElementById("importModal").addEventListener("click", function(e) {
+            if (e.target === this) closeImportModal();
+        });
 
-        return {
-          years,
-          months,
-          days,
-          totalDays,
-          totalHours: totalDays * 24,
-          daysToBirthday,
-          ageProgress: Math.min(100, Math.max(0, ageProgress))
+        // ===== 粘贴导入 =====
+        function confirmImport() {
+            const raw = document.getElementById("jsonInput").value.trim();
+            if (!raw) {
+                showToast("❌ 内容为空");
+                return;
+            }
+            try {
+                const data = JSON.parse(raw);
+                if (!Array.isArray(data) || data.length === 0) {
+                    showToast("❌ 格式不对，需要是题目数组");
+                    return;
+                }
+                const first = data[0];
+                if (!first.question || !first.options || !first.answer) {
+                    showToast("❌ 缺少 question/options/answer 字段");
+                    return;
+                }
+                importQuestions(data);
+            } catch (e) {
+                showToast("❌ JSON 解析失败，请检查格式");
+            }
         }
-      }
 
-      // 显示计算结果（带动画效果）
-      function showResult(age, birthDate, currentDate) {
-        // 隐藏初始提示，显示结果区域
-        document.getElementById('initialMessage').classList.add('hidden')
-        const resultElement = document.getElementById('result')
-        resultElement.classList.remove('hidden')
-
-        // 添加数字增长动画效果
-        animateValue('years', 0, age.years, 1500)
-        animateValue('months', 0, age.months, 1500)
-        animateValue('days', 0, age.days, 1500)
-
-        // 更新概览文本
-        document.getElementById(
-          'ageOverview'
-        ).textContent = `${age.years}岁 ${age.months}个月 ${age.days}天`
-
-        // 更新其他统计数据
-        document.getElementById('totalDays').textContent = age.totalDays.toLocaleString()
-        document.getElementById('totalHours').textContent = age.totalHours.toLocaleString()
-        document.getElementById('daysToBirthday').textContent = `${age.daysToBirthday} 天`
-
-        // 更新年龄进度
-        document.getElementById('ageProgressPercent').textContent = `${Math.round(
-          age.ageProgress
-        )}%`
-        // 进度条动画
-        setTimeout(() => {
-          document.getElementById('ageProgressBar').style.width = `${age.ageProgress}%`
-        }, 300)
-
-        // 添加结果区域的进入动画
-        resultElement.classList.add('animate-fade-in')
-        setTimeout(() => {
-          resultElement.classList.remove('animate-fade-in')
-        }, 1000)
-      }
-
-      // 数字增长动画函数
-      function animateValue(id, start, end, duration) {
-        const obj = document.getElementById(id)
-        let startTimestamp = null
-        const step = (timestamp) => {
-          if (!startTimestamp) startTimestamp = timestamp
-          const progress = Math.min((timestamp - startTimestamp) / duration, 1)
-          // 使用easeOutQuad缓动函数使动画更自然
-          const easeProgress = 1 - (1 - progress) * (1 - progress)
-          obj.textContent = Math.floor(easeProgress * (end - start) + start)
-          if (progress < 1) {
-            window.requestAnimationFrame(step)
-          }
+        function importQuestions(data) {
+            allQuestions = data;
+            localStorage.setItem("questions893", JSON.stringify(allQuestions));
+            currentList = allQuestions;
+            current = 0;
+            isWrongMode = false;
+            stats = { correct: 0, wrong: 0 };
+            wrongList = [];
+            localStorage.setItem("wrong893", JSON.stringify(wrongList));
+            updateWrongNavStyle();
+            updateWrongBadge();
+            closeImportModal();
+            renderQuestion();
+            showToast("✅ 导入成功！共 " + allQuestions.length + " 题");
         }
-        window.requestAnimationFrame(step)
-      }
+
+        // ===== 渲染题目 =====
+        function renderQuestion() {
+            answered = false;
+            document.getElementById("resultBlock").classList.add("hidden");
+            document.getElementById("showBtn").disabled = false;
+            document.getElementById("showBtn").textContent = "👁 显示答案";
+
+            const empty = document.getElementById("emptyState");
+            const body  = document.getElementById("questionBody");
+
+            if (currentList.length === 0) {
+                empty.classList.remove("hidden");
+                body.classList.add("hidden");
+                updateProgress();
+                return;
+            }
+
+            empty.classList.add("hidden");
+            body.classList.remove("hidden");
+
+            const q = currentList[current];
+            document.getElementById("questionText").textContent = q.question;
+
+            const letters = ["A","B","C","D","E","F"];
+            const optsEl = document.getElementById("options");
+            optsEl.innerHTML = "";
+            q.options.forEach((opt, i) => {
+                const div = document.createElement("div");
+                div.className = "option";
+                div.dataset.index = i;
+
+                const letter = document.createElement("span");
+                letter.className = "option-letter";
+                letter.textContent = letters[i] || String(i+1);
+
+                const text = document.createElement("span");
+                text.textContent = opt.replace(/^[A-Z]\.\s*/, "");
+
+                div.appendChild(letter);
+                div.appendChild(text);
+                div.addEventListener("click", () => handleOptionClick(div, i));
+                optsEl.appendChild(div);
+            });
+
+            updateProgress();
+            updateStats();
+
+            const card = document.getElementById("questionCard");
+            card.scrollTop = 0;
+        }
+
+        // ===== 选项点击 =====
+        function handleOptionClick(el, index) {
+            if (answered) return;
+            answered = true;
+
+            const q = currentList[current];
+            const letters = ["A","B","C","D","E","F"];
+            const correctLetter = q.answer.trim().toUpperCase();
+            const correctIndex = letters.indexOf(correctLetter);
+            const isRight = (index === correctIndex);
+
+            const allOpts = document.querySelectorAll(".option");
+            allOpts.forEach(opt => opt.classList.add("disabled"));
+
+            if (isRight) {
+                el.classList.add("correct");
+                stats.correct++;
+                document.getElementById("resultIcon").textContent = "✅";
+                document.getElementById("resultText").textContent = "回答正确！";
+                document.getElementById("resultText").className = "result-text correct-text";
+
+                const inWrong = wrongList.some(item => item.question === q.question);
+                if (inWrong) {
+                    wrongList = wrongList.filter(item => item.question !== q.question);
+                    localStorage.setItem("wrong893", JSON.stringify(wrongList));
+                    updateWrongBadge();
+                }
+            } else {
+                el.classList.add("wrong");
+                if (correctIndex >= 0 && allOpts[correctIndex]) {
+                    allOpts[correctIndex].classList.add("highlight-correct");
+                }
+                stats.wrong++;
+                document.getElementById("resultIcon").textContent = "❌";
+                document.getElementById("resultText").textContent = "回答错误";
+                document.getElementById("resultText").className = "result-text wrong-text";
+
+                const inWrong = wrongList.some(item => item.question === q.question);
+                if (!inWrong) {
+                    wrongList.push(q);
+                    localStorage.setItem("wrong893", JSON.stringify(wrongList));
+                    updateWrongBadge();
+                    showToast("📕 已收录错题本");
+                }
+            }
+
+            document.getElementById("answerLabel").textContent = "正确答案：" + correctLetter;
+            document.getElementById("explain").textContent = q.explain || "暂无解析";
+            document.getElementById("resultBlock").classList.remove("hidden");
+            document.getElementById("showBtn").disabled = true;
+            document.getElementById("showBtn").textContent = "已显示答案";
+            updateStats();
+        }
+
+        // ===== 显示答案 =====
+        document.getElementById("showBtn").onclick = () => {
+            if (answered) return;
+            answered = true;
+
+            const q = currentList[current];
+            if (!q) return;
+
+            const letters = ["A","B","C","D","E","F"];
+            const correctLetter = q.answer.trim().toUpperCase();
+            const correctIndex  = letters.indexOf(correctLetter);
+            const allOpts = document.querySelectorAll(".option");
+            allOpts.forEach(opt => opt.classList.add("disabled"));
+            if (correctIndex >= 0 && allOpts[correctIndex]) {
+                allOpts[correctIndex].classList.add("highlight-correct");
+            }
+
+            document.getElementById("resultIcon").textContent = "📖";
+            document.getElementById("resultText").textContent = "查看答案";
+            document.getElementById("resultText").className = "result-text";
+            document.getElementById("answerLabel").textContent = "正确答案：" + correctLetter;
+            document.getElementById("explain").textContent = q.explain || "暂无解析";
+            document.getElementById("resultBlock").classList.remove("hidden");
+            document.getElementById("showBtn").textContent = "已显示答案";
+            document.getElementById("showBtn").disabled = true;
+
+            const inWrong = wrongList.some(item => item.question === q.question);
+            if (!inWrong) {
+                wrongList.push(q);
+                localStorage.setItem("wrong893", JSON.stringify(wrongList));
+                updateWrongBadge();
+                showToast("📕 已收录错题本");
+            }
+        };
+
+        // ===== 导航 =====
+        document.getElementById("nextBtn").onclick = () => {
+            if (currentList.length === 0) return;
+            current = (current + 1) % currentList.length;
+            renderQuestion();
+        };
+
+        document.getElementById("prevBtn").onclick = () => {
+            if (currentList.length === 0) return;
+            current = (current - 1 + currentList.length) % currentList.length;
+            renderQuestion();
+        };
+
+        document.getElementById("wrongNavBtn").onclick = () => {
+            if (!isWrongMode) {
+                if (wrongList.length === 0) { showToast("📭 错题本还是空的"); return; }
+                isWrongMode = true;
+                currentList = wrongList;
+                current = 0;
+                stats = { correct: 0, wrong: 0 };
+            } else {
+                isWrongMode = false;
+                currentList = allQuestions;
+                current = 0;
+                stats = { correct: 0, wrong: 0 };
+            }
+            updateWrongNavStyle();
+            renderQuestion();
+        };
+
+        // ===== 辅助函数 =====
+        function updateWrongBadge() {
+            const badge = document.getElementById("wrongBadge");
+            if (wrongList.length > 0) {
+                badge.textContent = wrongList.length;
+                badge.classList.remove("hidden");
+            } else {
+                badge.classList.add("hidden");
+            }
+        }
+
+        function updateWrongNavStyle() {
+            const btn = document.getElementById("wrongNavBtn");
+            btn.classList.toggle("is-active", isWrongMode);
+        }
+
+        function updateProgress() {
+            const total = currentList.length;
+            const idx   = total > 0 ? current + 1 : 0;
+            const pct   = total > 0 ? ((current + 1) / total * 100).toFixed(1) : 0;
+            document.getElementById("progressFill").style.width = pct + "%";
+            document.getElementById("progressLabel").textContent = idx + "/" + total;
+        }
+
+        function updateStats() {
+            const total = stats.correct + stats.wrong;
+            document.getElementById("chipCorrect").textContent = stats.correct;
+            document.getElementById("chipWrong").textContent   = stats.wrong;
+            document.getElementById("chipRate").textContent    = total > 0 ? Math.round(stats.correct / total * 100) + "%" : "--";
+        }
     </script>
-  </body>
+</body>
 </html>
